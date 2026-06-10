@@ -144,9 +144,11 @@ func (c *Client) getDailyFromCache(ctx context.Context, userID string, start, en
 	}
 
 	// Fetch exposure IDs within the time range.
-	ids, err := c.rdb.ZRangeByScore(ctx, dailySetKey(userID, start), &redis.ZRangeBy{
-		Min: strconv.FormatInt(start.Unix(), 10),
-		Max: strconv.FormatInt(end.Unix(), 10),
+	ids, err := c.rdb.ZRangeArgs(ctx, redis.ZRangeArgs{
+		Key:     dailySetKey(userID, start),
+		Start:   strconv.FormatInt(start.Unix(), 10),
+		Stop:    strconv.FormatInt(end.Unix(), 10),
+		ByScore: true,
 	}).Result()
 	if err != nil {
 		return nil, false, err
