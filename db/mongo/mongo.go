@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -40,12 +41,14 @@ func New(ctx context.Context, uri string) (*Client, error) {
 }
 
 func (c *Client) ensureIndexes(ctx context.Context) {
-	c.mdb.Collection(colExposures).Indexes().CreateOne(ctx, gomongo.IndexModel{
+	if _, err := c.mdb.Collection(colExposures).Indexes().CreateOne(ctx, gomongo.IndexModel{
 		Keys: bson.D{
 			{Key: "user._id", Value: 1},
 			{Key: "created_at", Value: 1},
 		},
-	})
+	}); err != nil {
+		log.Printf("mongo: ensure index on %s: %v", colExposures, err)
+	}
 }
 
 func (c *Client) GetUser(ctx context.Context, id string) (*data.User, error) {

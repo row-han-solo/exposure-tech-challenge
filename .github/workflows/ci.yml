@@ -19,8 +19,8 @@ jobs:
         with:
           version: latest
 
-  test:
-    name: Test
+  unit-test:
+    name: Unit Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
         with:
           go-version: "1.23"
 
-      - name: Run tests
+      - name: Run unit tests
         run: go test -race -coverprofile=coverage.out ./...
 
       - uses: actions/upload-artifact@v4
@@ -37,10 +37,20 @@ jobs:
           name: coverage-report
           path: coverage.out
 
+  e2e-test:
+    name: E2E Test
+    runs-on: ubuntu-latest
+    needs: [lint, unit-test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run smoke tests
+        run: bash scripts/smoke_test.sh --cleanup
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [e2e-test]
     steps:
       - uses: actions/checkout@v4
 
